@@ -1,0 +1,1 @@
+rsync -ruv --exclude=code --exclude=.git u237c:gatsby-swc/gatsby/code/ssm_rapela/repos/projects/lds_neuralLatents_MC_MAZE_SMALL/* .

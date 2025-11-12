@@ -1,0 +1,7 @@
+*~
+*swp
+data/*
+results/*
+figures/*
+metadata/*
+*__pycache__*
