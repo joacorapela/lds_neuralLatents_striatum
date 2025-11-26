@@ -26,11 +26,17 @@ def main(argv):
                         default=1e-1)
     parser.add_argument("--skip_sqrt_transform",
                         help="sqrt transform spike counts", action="store_true")
+    parser.add_argument("--skip_estimation_u",
+                        help="use this option to skip the estimation of u",
+                        action="store_true")
     parser.add_argument("--skip_estimation_B",
                         help="use this option to skip the estimation of B",
                         action="store_true")
     parser.add_argument("--skip_estimation_Q",
                         help="use this option to skip the estimation of Q",
+                        action="store_true")
+    parser.add_argument("--skip_estimation_a",
+                        help="use this option to skip the estimation of a",
                         action="store_true")
     parser.add_argument("--skip_estimation_Z",
                         help="use this option to skip the estimation of Z",
@@ -66,8 +72,10 @@ def main(argv):
     max_iter = args.max_iter
     tol = args.tol
     skip_sqrt_transform = args.skip_sqrt_transform
+    skip_estimation_u = args.skip_estimation_u
     skip_estimation_B = args.skip_estimation_B
     skip_estimation_Q = args.skip_estimation_Q
+    skip_estimation_a = args.skip_estimation_a
     skip_estimation_Z = args.skip_estimation_Z
     skip_estimation_diag_R = args.skip_estimation_diag_R
     estimate_R = args.estimate_R
@@ -100,35 +108,42 @@ def main(argv):
     initialConditions_params = configparser.ConfigParser()
     initialConditions_params.read(initialConditions_params_filename)
 
-    if not skip_estimation_B:
-        aux = initialConditions_params['params']['B']
-        B0 = ssm.utils.string_to_matrix(aux)
+    aux = raw_data = initialConditions_params['params']['u']
+    u0 = ssm.utils.string_to_array1d(aux).squeeze()
 
-    if not skip_estimation_Z:
-        aux = initialConditions_params['params']['Z']
-        Z0 = ssm.utils.string_to_matrix(aux)
+    aux = initialConditions_params['params']['B']
+    B0 = ssm.utils.string_to_matrix(aux)
 
-    if not skip_estimation_Q:
-        aux = initialConditions_params['params']['Q']
-        Q0 = ssm.utils.string_to_matrix(aux)
+    aux = raw_data = initialConditions_params['params']['a']
+    a0 = ssm.utils.string_to_array1d(aux).squeeze()
+
+    aux = initialConditions_params['params']['Z']
+    Z0 = ssm.utils.string_to_matrix(aux)
+
+    aux = initialConditions_params['params']['Q']
+    Q0 = ssm.utils.string_to_matrix(aux)
 
     if not skip_estimation_diag_R:
         aux = initialConditions_params['params']['diag_R']
         R0 = np.diag(ssm.utils.string_to_array1d(aux).squeeze())
-
-    if estimate_R:
+    elif estimate_R:
         aux = initialConditions_params['params']['R']
         R0 = ssm.utils.string_to_matrix(aux)
+    else:
+        raise ValueError("Invalid options: skip_estimation_diag_R=True and estimate_R=False")
 
-    if not skip_estimation_m0:
-        aux = initialConditions_params['params']['m0']
-        m0_0 = ssm.utils.string_to_array1d(aux).squeeze()
+    aux = initialConditions_params['params']['m0']
+    m0_0 = ssm.utils.string_to_array1d(aux).squeeze()
 
-    if not skip_estimation_V0:
-        aux = initialConditions_params['params']['V0']
-        V0_0 = ssm.utils.string_to_matrix(aux)
+    aux = initialConditions_params['params']['V0']
+    V0_0 = ssm.utils.string_to_matrix(aux)
 
     vars_to_estimate = {}
+
+    if skip_estimation_u:
+        vars_to_estimate["u"] = False
+    else:
+        vars_to_estimate["u"] = True
 
     if skip_estimation_B:
         vars_to_estimate["B"] = False
@@ -139,6 +154,11 @@ def main(argv):
         vars_to_estimate["Q"] = False
     else:
         vars_to_estimate["Q"] = True
+
+    if skip_estimation_a:
+        vars_to_estimate["a"] = False
+    else:
+        vars_to_estimate["a"] = True
 
     if skip_estimation_Z:
         vars_to_estimate["Z"] = False
@@ -168,10 +188,11 @@ def main(argv):
     if len(vars_to_estimate) == 0:
         ValueError("No variable to estimate.")
 
-    optim_res = ssm.learning.em_SS_LDS(
-        y=data.T, B0=B0, Q0=Q0, Z0=Z0, R0=R0,
+    optim_res = ssm.learning.em_with_offsets_SS_LDS(
+        y=data.T, u0=u0, B0=B0, Q0=Q0, a0=a0, Z0=Z0, R0=R0,
         m0_0=m0_0, V0_0=V0_0, max_iter=max_iter, tol=tol,
         vars_to_estimate=vars_to_estimate,
+        constraint_diag_R=not skip_estimation_diag_R,
     )
 
     # save results
