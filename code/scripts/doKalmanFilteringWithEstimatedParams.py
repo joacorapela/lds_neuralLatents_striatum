@@ -82,7 +82,8 @@ def main(argv):
 
     results = dict(xnn1=filter_res["xnn1"], Pnn1=filter_res["Pnn1"],
                    xnn=filter_res["xnn"], Pnn=filter_res["Pnn"], 
-                   bins_centers=bins_centers, logLike=filter_res["logLike"])
+                   bins_centers=bins_centers, logLike=filter_res["logLike"],
+                   Z=Z)
     with open(results_filename, "wb") as f:
         pickle.dump(results, f)
     print(f"Saved Kalman filter results to {results_filename}")
