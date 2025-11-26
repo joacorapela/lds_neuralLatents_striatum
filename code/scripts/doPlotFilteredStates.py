@@ -16,6 +16,9 @@ def main(argv):
                         type=float, default=2240.0)
     parser.add_argument("--duration_sec", help="duration to plot (sec)",
                         type=float, default=120.0)
+    parser.add_argument("--skip_orthogonalization",
+                        help="set to skip the orthogonalization of the states",
+                        action="store_true")
     parser.add_argument("--ports_to_plot",
                         help="ports to plot", type=str,
                         default="1,2,3,4,5,6,7")
@@ -30,7 +33,7 @@ def main(argv):
                         default="/nfs/gatsbystor/rapela/work/ucl/gatsby-swc/gatsby/svGPFA/repos/projects/svGPFA_striatum/data/Transition_data_sync.csv")
     parser.add_argument("--filtered_data_number", type=int,
                         help="number corresponding to filtered results filename",
-                        default=83750470)
+                        default=91408320)
     parser.add_argument("--filtered_data_filenames_pattern", type=str,
                         default="../../results/{:08d}_filtered.{:s}",
                         help="filtered_data filename pattern")
@@ -42,6 +45,7 @@ def main(argv):
 
     start_time_sec = args.start_time_sec
     end_time_sec = args.start_time_sec + args.duration_sec
+    skip_orthogonalization = args.skip_orthogonalization
     ports_to_plot = [int(port_str) for port_str in args.ports_to_plot.split(",")]
     ports_linetypes_str = args.ports_linetypes.split(",")
     ports_colors_str = args.ports_colors.split(",")
@@ -80,11 +84,14 @@ def main(argv):
     bins_centers_to_plot = bins_centers[to_plot_slice]
     means_to_plot = filtered_data["xnn"][:,:,to_plot_slice]
     covs_to_plot = filtered_data["Pnn"][:,:,to_plot_slice]
+    Z = filtered_data["Z"]
 
     fig = ssm.neural_latents.plotting.plot_latents(
         means=means_to_plot,
         covs=covs_to_plot,
         bins_centers=bins_centers_to_plot,
+        orthogonalize=not skip_orthogonalization,
+        Z=Z,
     )
     ssm.plotting.add_events_vlines(fig=fig, events_df=events_df)
 
