@@ -5,8 +5,8 @@ import pandas as pd
 
 def build_events_df(start_time_sec, end_time_sec, transition_data,
                     ports_linetypes, ports_colors,
-                    start_poke_in_time_col_name="Start_Poke_in_time",
-                    start_poke_out_time_col_name="Start_Poke_out_time",
+                    # start_poke_in_time_col_name="Start_Poke_in_time",
+                    start_poke_in_time_col_name="P1_IN_Ephys_TS",
                     start_port_col_name="Start_Port"):
     mask = np.logical_and(
         start_time_sec<=transition_data[start_poke_in_time_col_name],
