@@ -13,7 +13,7 @@ import plotUtils
 def main(argv):
     parser = argparse.ArgumentParser()
     parser.add_argument("--start_time_sec", help="start time to plot (sec)",
-                        type=float, default=2240.0)
+                        type=float, default=5512.0)
     parser.add_argument("--duration_sec", help="duration to plot (sec)",
                         type=float, default=120.0)
     parser.add_argument("--skip_orthogonalization",
@@ -31,12 +31,16 @@ def main(argv):
     parser.add_argument("--transition_data_filename",
                         help="transition data filename", type=str,
                         default="/nfs/gatsbystor/rapela/work/ucl/gatsby-swc/gatsby/svGPFA/repos/projects/svGPFA_striatum/data/Transition_data_sync.csv")
-    parser.add_argument("--filtered_data_number", type=int,
+    parser.add_argument("--filtering_res_number", type=int,
                         help="number corresponding to filtered results filename",
-                        default=91408320)
-    parser.add_argument("--filtered_data_filenames_pattern", type=str,
+                        default=76873351)
+                        # default=86836781)
+                        # default=37634274)
+                        # default=58340273)
+                        # default=46183507)
+    parser.add_argument("--filtering_res_filenames_pattern", type=str,
                         default="../../results/{:08d}_filtered.{:s}",
-                        help="filtered_data filename pattern")
+                        help="filtering_res filename pattern")
     parser.add_argument("--fig_filename_pattern",
                         help="figure filename pattern",
                         default="../../figures/{:08d}_state_filtered_from{:.02f}_to{:.02f}.{:s}")
@@ -50,9 +54,9 @@ def main(argv):
     ports_linetypes_str = args.ports_linetypes.split(",")
     ports_colors_str = args.ports_colors.split(",")
     transition_data_filename = args.transition_data_filename
-    filtered_data_number = args.filtered_data_number
-    filtered_data_filenames_pattern = \
-        args.filtered_data_filenames_pattern
+    filtering_res_number = args.filtering_res_number
+    filtering_res_filenames_pattern = \
+        args.filtering_res_filenames_pattern
     fig_filename_pattern = args.fig_filename_pattern
 
     ports_linetypes = dict(zip(ports_to_plot, ports_linetypes_str))
@@ -67,26 +71,26 @@ def main(argv):
         ports_linetypes=ports_linetypes,
         ports_colors=ports_colors)
 
-    filtered_data_filename = \
-        filtered_data_filenames_pattern.format(filtered_data_number, "pickle")
-    with open(filtered_data_filename, "rb") as f:
-        filtered_data = pickle.load(f)
+    filtering_res_filename = \
+        filtering_res_filenames_pattern.format(filtering_res_number, "pickle")
+    with open(filtering_res_filename, "rb") as f:
+        filtering_res = pickle.load(f)
 
     filtered_metadata_filename = \
-        filtered_data_filenames_pattern.format(filtered_data_number, "ini")
+        filtering_res_filenames_pattern.format(filtering_res_number, "ini")
     filtered_metadata = configparser.ConfigParser()
     filtered_metadata.read(filtered_metadata_filename)
 
-    bins_centers = filtered_data["bins_centers"]
+    bins_centers = filtering_res["bins_centers"]
     first_index = np.where(bins_centers >= start_time_sec)[0][0]
     last_index = np.where(bins_centers <= end_time_sec)[0][-1]
     to_plot_slice = slice(first_index, last_index)
     bins_centers_to_plot = bins_centers[to_plot_slice]
-    means_to_plot = filtered_data["xnn"][:,:,to_plot_slice]
-    covs_to_plot = filtered_data["Pnn"][:,:,to_plot_slice]
-    Z = filtered_data["Z"]
+    means_to_plot = filtering_res["xnn"][:,:,to_plot_slice]
+    covs_to_plot = filtering_res["Pnn"][:,:,to_plot_slice]
+    Z = filtering_res["Z"]
 
-    fig = ssm.neural_latents.plotting.plot_latents(
+    fig = ssm.neural_latents.plotting.getPlotLatents(
         means=means_to_plot,
         covs=covs_to_plot,
         bins_centers=bins_centers_to_plot,
@@ -96,11 +100,11 @@ def main(argv):
     ssm.plotting.add_events_vlines(fig=fig, events_df=events_df)
 
     fig.update_layout(
-        title=f'Log-Likelihood: {filtered_data["logLike"].squeeze()}')
-    fig.write_image(fig_filename_pattern.format(filtered_data_number,
+        title=f'Log-Likelihood: {filtering_res["logLike"].squeeze()}')
+    fig.write_image(fig_filename_pattern.format(filtering_res_number,
                                                 start_time_sec, end_time_sec,
                                                 "png"))
-    fig.write_html(fig_filename_pattern.format(filtered_data_number,
+    fig.write_html(fig_filename_pattern.format(filtering_res_number,
                                                start_time_sec, end_time_sec,
                                                "html"))
     fig.show()
