@@ -12,9 +12,9 @@ def main(argv):
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--start_time_sec", help="start time to plot (sec)",
-                        type=float, default=2240.0)
+                        type=float, default=5512.0)
     parser.add_argument("--duration_sec", help="duration to plot (sec)",
-                        type=float, default=360.0)
+                        type=float, default=120.0)
     parser.add_argument("--ports_to_plot",
                         help="ports to plot", type=str,
                         default="1,2,3,4,5,6,7")
@@ -24,6 +24,9 @@ def main(argv):
     parser.add_argument("--ports_colors",
                         help="colors for ports", type=str,
                         default="blue,red,cyan,yellow,purple,green,magenta")
+    parser.add_argument("--clustersIndices_filename",
+                        help="filename with clusterIndices used for estimation", type=str,
+                        default="../../metadata/clustersIndices_124_223.ini")
     parser.add_argument("--transition_data_filename",
                         help="transition data filename", type=str,
                         default="/nfs/gatsbystor/rapela/work/ucl/gatsby-swc/gatsby/svGPFA/repos/projects/svGPFA_striatum/data/Transition_data_sync.csv")
@@ -45,6 +48,7 @@ def main(argv):
     ports_to_plot = [int(port_str) for port_str in args.ports_to_plot.split(",")]
     ports_linetypes_str = args.ports_linetypes.split(",")
     ports_colors_str = args.ports_colors.split(",")
+    clustersIndices_filename = args.clustersIndices_filename
     png_fig_filename = args.fig_filename_pattern.format(start_time_sec,
                                                         end_time_sec, "png")
     html_fig_filename = args.fig_filename_pattern.format(start_time_sec,
@@ -53,18 +57,17 @@ def main(argv):
     ports_linetypes = dict(zip(ports_to_plot, ports_linetypes_str))
     ports_colors = dict(zip(ports_to_plot, ports_colors_str))
 
+    clusters_indices = pd.read_csv(clustersIndices_filename, header=None,
+                                   index_col=False).to_numpy().squeeze()
     units_info_df = pd.read_csv(units_info_filename)
     transition_data = pd.read_csv(transition_data_filename)
 
-    # n_clusters
-    n_clusters = units_info_df.shape[0]
-
     # continuous spikes times
-    continuous_spikes_times = [None for n in range(n_clusters)]
-    for n in range(n_clusters):
+    continuous_spikes_times = [None for n in clusters_indices]
+    for i, n in enumerate(clusters_indices):
         unit_spikes_times_str = units_info_df.iloc[n][spikes_times_col_name][1:-1].split(",")
         unit_spikes_times = np.array([float(unit_spike_times_str) for unit_spike_times_str in unit_spikes_times_str])
-        continuous_spikes_times[n] = unit_spikes_times[np.logical_and(start_time_sec<=unit_spikes_times,
+        continuous_spikes_times[i] = unit_spikes_times[np.logical_and(start_time_sec<=unit_spikes_times,
                                                                       unit_spikes_times<end_time_sec)]
 
     events_df = plotUtils.build_events_df(
@@ -75,9 +78,9 @@ def main(argv):
         ports_colors=ports_colors)
 
     fig = go.Figure()
-    for n in range(n_clusters):
-        trace = go.Scatter(x=continuous_spikes_times[n],
-                           y=n*np.ones(len(continuous_spikes_times[n])),
+    for i, n in enumerate(clusters_indices):
+        trace = go.Scatter(x=continuous_spikes_times[i],
+                           y=n*np.ones(len(continuous_spikes_times[i])),
                            mode="markers",
                            name=f'{n},{units_info_df.iloc[n]["Region"]}')
         fig.add_trace(trace)
