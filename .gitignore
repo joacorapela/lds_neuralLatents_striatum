@@ -4,4 +4,8 @@ data/*
 results/*
 figures/*
 metadata/*
+notes/*
 *__pycache__*
+docs/reports/20251211/*
+!docs/reports/20251211/Makefile
+!docs/reports/20251211/firstLDSreport_20251211.tex
