@@ -14,12 +14,13 @@ import ssm.inference
 def main(argv):
     parser = argparse.ArgumentParser()
     parser.add_argument("--start_time_sec", help="start time to plot (sec)",
-                        type=float, default=2240.0)
+                        type=float, default=5512.0)
     parser.add_argument("--duration_sec", help="duration to plot (sec)",
                         type=float, default=120.0)
     parser.add_argument("--est_res_num", type=int,
                         help="estimation result number",
-                        default=58110546)
+                        default=82227365)
+                        # default=56088465)
     parser.add_argument("--clustersIndices_filename",
                         help="filename with clusterIndices used for estimation", type=str,
                         default="../../metadata/clustersIndices_124_223.ini")
@@ -47,29 +48,31 @@ def main(argv):
     with open(est_res_filename, "rb") as f:
         optim_res = pickle.load(f)
 
+    u = optim_res["u"]
     B = optim_res["B"]
     Q = optim_res["Q"]
+    a = optim_res["a"]
     Z = optim_res["Z"]
-    R = np.diag(optim_res["diag_R"])
+    R = optim_res["R"]
     m0 = optim_res["m0"]
     V0 = optim_res["V0"]
 
     load_res = np.load(binned_spikes_filename)
-    data = load_res["binned_spikes"].T
+    data = load_res["binned_spikes"]
     bins_centers = load_res["bins_centers"]
 
     # make sure that the first data point is not NaN
-    first_not_nan_index = np.where(~np.isnan(data).any(axis=1))[0][0]
-    data = data[first_not_nan_index:,clustersIndices]
+    first_not_nan_index = np.where(~np.isnan(data).any(axis=0))[0][0]
+    data = data[clustersIndices, first_not_nan_index:]
     #
 
     valid_bins_mask = np.logical_and(start_time_sec<=bins_centers,
                                      bins_centers<end_time_sec)
     bins_centers = bins_centers[valid_bins_mask]
-    data = data[valid_bins_mask, :]
+    data = data[:, valid_bins_mask]
 
     filter_res = ssm.inference.filterLDS_SS_withMissingValues_np(
-        y=data.T, B=B, Q=Q, m0=m0, V0=V0, Z=Z, R=R)
+        y=data, u=u, B=B, Q=Q, m0=m0, V0=V0, a=a, Z=Z, R=R)
 
     # save results
     res_prefix_used = True
@@ -81,9 +84,8 @@ def main(argv):
     results_filename = results_filename_pattern.format(res_num, "pickle")
 
     results = dict(xnn1=filter_res["xnn1"], Pnn1=filter_res["Pnn1"],
-                   xnn=filter_res["xnn"], Pnn=filter_res["Pnn"], 
-                   bins_centers=bins_centers, logLike=filter_res["logLike"],
-                   Z=Z)
+                   xnn=filter_res["xnn"], Pnn=filter_res["Pnn"],
+                   bins_centers=bins_centers, logLike=filter_res["logLike"])
     with open(results_filename, "wb") as f:
         pickle.dump(results, f)
     print(f"Saved Kalman filter results to {results_filename}")
@@ -92,6 +94,8 @@ def main(argv):
     metadata["params"] = {
         "est_res_num": est_res_num,
         "est_filename_pattern": est_filename_pattern,
+        "start_time_sec": start_time_sec,
+        "end_time_sec": end_time_sec,
     }
     with open(metadata_filename, "w") as f:
         metadata.write(f)

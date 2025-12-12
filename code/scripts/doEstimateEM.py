@@ -15,7 +15,7 @@ import ssm.utils
 def main(argv):
     parser = argparse.ArgumentParser()
     parser.add_argument("--start_time_sec", help="start time to plot (sec)",
-                        type=float, default=2240.0)
+                        type=float, default=5512.0)
     parser.add_argument("--duration_sec", help="duration to plot (sec)",
                         type=float, default=120.0)
     parser.add_argument("--bin_size", help="bin size (secs)", type=float,
@@ -41,11 +41,11 @@ def main(argv):
     parser.add_argument("--skip_estimation_Z",
                         help="use this option to skip the estimation of Z",
                         action="store_true")
-    parser.add_argument("--skip_estimation_diag_R",
-                        help="use this option to skip the estimation of diag_R",
+    parser.add_argument("--skip_constraint_diag_R",
+                        help="use this option to skip the diagonal constraint of R",
                         action="store_true")
-    parser.add_argument("--estimate_R",
-                        help="use this option to estimate R",
+    parser.add_argument("--skip_estimation_R",
+                        help="use this option to skip the estimation of R",
                         action="store_true")
     parser.add_argument("--skip_estimation_m0",
                         help="use this option to skip the estimation of m0",
@@ -77,8 +77,8 @@ def main(argv):
     skip_estimation_Q = args.skip_estimation_Q
     skip_estimation_a = args.skip_estimation_a
     skip_estimation_Z = args.skip_estimation_Z
-    skip_estimation_diag_R = args.skip_estimation_diag_R
-    estimate_R = args.estimate_R
+    skip_constraint_diag_R = args.skip_constraint_diag_R
+    skip_estimation_R = args.skip_estimation_R
     skip_estimation_m0 = args.skip_estimation_m0
     skip_estimation_V0 = args.skip_estimation_V0
     clustersIndices_filename = args.clustersIndices_filename
@@ -123,14 +123,12 @@ def main(argv):
     aux = initialConditions_params['params']['Q']
     Q0 = ssm.utils.string_to_matrix(aux)
 
-    if not skip_estimation_diag_R:
+    if not skip_constraint_diag_R:
         aux = initialConditions_params['params']['diag_R']
         R0 = np.diag(ssm.utils.string_to_array1d(aux).squeeze())
-    elif estimate_R:
+    else:
         aux = initialConditions_params['params']['R']
         R0 = ssm.utils.string_to_matrix(aux)
-    else:
-        raise ValueError("Invalid options: skip_estimation_diag_R=True and estimate_R=False")
 
     aux = initialConditions_params['params']['m0']
     m0_0 = ssm.utils.string_to_array1d(aux).squeeze()
@@ -165,15 +163,10 @@ def main(argv):
     else:
         vars_to_estimate["Z"] = True
 
-    if estimate_R:
-        vars_to_estimate["R"] = True
-    else:
+    if skip_estimation_R:
         vars_to_estimate["R"] = False
-
-    if skip_estimation_diag_R:
-        vars_to_estimate["diag_R"] = False
     else:
-        vars_to_estimate["diag_R"] = True
+        vars_to_estimate["R"] = True
 
     if skip_estimation_m0:
         vars_to_estimate["m0"] = False
@@ -188,11 +181,11 @@ def main(argv):
     if len(vars_to_estimate) == 0:
         ValueError("No variable to estimate.")
 
-    optim_res = ssm.learning.em_with_offsets_SS_LDS(
+    optim_res = ssm.learning.em_SS_LDS(
         y=data.T, u0=u0, B0=B0, Q0=Q0, a0=a0, Z0=Z0, R0=R0,
         m0_0=m0_0, V0_0=V0_0, max_iter=max_iter, tol=tol,
         vars_to_estimate=vars_to_estimate,
-        constraint_diag_R=not skip_estimation_diag_R,
+        constraint_diag_R=not skip_constraint_diag_R,
     )
 
     # save results
@@ -206,7 +199,7 @@ def main(argv):
 
     with open(results_filename, "wb") as f:
         pickle.dump(optim_res, f)
-    print(f"Saved Kalman filter results to {results_filename}")
+    print(f"Saved results to {results_filename}")
 
     metadata = configparser.ConfigParser()
     metadata["params"] = {
@@ -219,8 +212,8 @@ def main(argv):
         "skip_estimation_B": skip_estimation_B,
         "skip_estimation_Q": skip_estimation_Q,
         "skip_estimation_Z": skip_estimation_Z,
-        "skip_estimation_diag_R": skip_estimation_diag_R,
-        "estimate_R": estimate_R,
+        "skip_constraint_diag_R": skip_constraint_diag_R,
+        "skip_estimation_R": skip_estimation_R,
         "skip_estimation_m0": skip_estimation_m0,
         "skip_estimation_V0": skip_estimation_V0,
         "clustersIndices_filename": clustersIndices_filename,
