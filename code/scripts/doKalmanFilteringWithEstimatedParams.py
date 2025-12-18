@@ -48,14 +48,31 @@ def main(argv):
     with open(est_res_filename, "rb") as f:
         optim_res = pickle.load(f)
 
-    u = optim_res["u"]
-    B = optim_res["B"]
-    Q = optim_res["Q"]
-    a = optim_res["a"]
-    Z = optim_res["Z"]
-    R = optim_res["R"]
-    m0 = optim_res["m0"]
-    V0 = optim_res["V0"]
+    if "u" in optim_res.keys(): # EM
+        u = optim_res["u"]
+        B = optim_res["B"]
+        Q = optim_res["Q"]
+        a = optim_res["a"]
+        Z = optim_res["Z"]
+        R = optim_res["R"]
+        m0 = optim_res["m0"]
+        V0 = optim_res["V0"]
+    elif "estimates" in optim_res.keys(): # gradient ascent
+        B = optim_res["estimates"]["B"].numpy()
+        M = B.shape[0]
+        if "u" in optim_res["estimates"].keys():
+            u = optim_res["estimates"]["u"].numpy()
+        else:
+            u = np.zeros(shape=M)
+        Q = np.diag(optim_res["estimates"]["sqrt_diag_Q"].numpy()**2)
+        if "m0" in optim_res["estimates"].keys():
+            m0 = optim_res["estimates"]["m0"].numpy()
+        else:
+            m0 = np.zeros(shape=M)
+        V0 = np.diag(optim_res["estimates"]["sqrt_diag_V0"].numpy()**2)
+        Z = optim_res["estimates"]["Z"].numpy()
+        a = optim_res["estimates"]["a"].numpy()
+        R = np.diag(optim_res["estimates"]["sqrt_diag_R"].numpy()**2)
 
     load_res = np.load(binned_spikes_filename)
     data = load_res["binned_spikes"]

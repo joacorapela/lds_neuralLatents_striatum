@@ -80,6 +80,13 @@ def main(argv):
         filtering_res_filenames_pattern.format(filtering_res_number, "ini")
     filtered_metadata = configparser.ConfigParser()
     filtered_metadata.read(filtered_metadata_filename)
+    est_filename = filtered_metadata["params"]["est_filename_pattern"].format(int(filtered_metadata["params"]["est_res_num"]), "pickle")
+    with open(est_filename, "rb") as f:
+        load_res = pickle.load(f)
+    if "Z" in load_res.keys(): # EM
+        Z = load_res["Z"]
+    elif "estimates" in load_res.keys(): # gradient ascent
+        Z = load_res["estimates"]["Z"]
 
     bins_centers = filtering_res["bins_centers"]
     first_index = np.where(bins_centers >= start_time_sec)[0][0]
@@ -88,7 +95,6 @@ def main(argv):
     bins_centers_to_plot = bins_centers[to_plot_slice]
     means_to_plot = filtering_res["xnn"][:,:,to_plot_slice]
     covs_to_plot = filtering_res["Pnn"][:,:,to_plot_slice]
-    Z = filtering_res["Z"]
 
     fig = ssm.neural_latents.plotting.getPlotLatents(
         means=means_to_plot,
