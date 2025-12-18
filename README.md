@@ -1,5 +1,5 @@
-Analysis of striatal sequence learning spike counts with Linear dynamical systems
----------------------------------------------------------------------------------
+Analysis of striatal sequence learning with Linear dynamical systems
+--------------------------------------------------------------------
 
 
 Under construction.
