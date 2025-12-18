@@ -7,6 +7,7 @@
 \usepackage{natbib}
 \usepackage{apalike}
 \usepackage{amsmath,amssymb}
+\usepackage{endfloat}
 
 \newcommand{\estNumber}{82227365}
 
@@ -29,19 +30,39 @@ structure of Emmett's switching-task recordings~\citep{thompsonEtAl24}.
 
 We analyzed two minutes of continuous electrophysiological recordings starting
 at (electrophysiological) time 5512 from
-\texttt{EJT178\_implant1\\recording1\_15\-03\-2022}, and neurons 124 to 223 in
-the striatum.
+\texttt{EJT178\_implant1/recording1\_15\-03\-2022}, and neurons indices 124 to
+223 in the striatum.
+%
+Figure~\ref{fig:spikeTimes} plots the spike times used in this analysis.
+
+\begin{figure}
+    \centering
+    \href{http://www.gatsby.ucl.ac.uk/~rapela/emmett/reports/firstLDSreport/figures/spike_times_start5512.00_end5632.00.html}{\includegraphics[width=6in]{../../../figures/spike_times_start5512.00_end5632.00.png}}
+
+    \caption{Spikes times used in this analysis: we analyzed two minutes of
+    continuous electrophysiological recordings starting at
+    (electrophysiological) time 5,512 from
+    \texttt{EJT178\_implant1/recording1\_15\-03\-2022}, and neurons indices
+    124 to 223 in the striatum.
+    %
+    Click on the image to get its interactive version.
+    %
+    }
+
+    \label{fig:spikeTimes}
+\end{figure}
 
 \subsection{LDS model}
 
-The LDS model estimates $K$ latent variables, $x_0(t),\ldots,x_{K-1}(t)$.  We
-concatenated the latent variables into a latent vector $\mathbf{x}(t)$:
+The LDS model estimates $K$ latent variables, $x_0[n],\ldots,x_{K-1}[n]$,
+$n\in\{0,\ldots,N-1\}$.  We
+concatenated the latent variables into a latent vector $\mathbf{x}[n]$:
 
 \begin{align}
-    \mathbf{x}(t)=\left[\begin{array}{c}
-        x_0(t)\\
+    \mathbf{x}[n]=\left[\begin{array}{c}
+        x_0[n]\\
                             \vdots\\
-                            x_{K-1}(t)
+                            x_{K-1}[n]
                         \end{array}\right]
     \label{eq:latentsVector}
 \end{align}
@@ -49,271 +70,218 @@ concatenated the latent variables into a latent vector $\mathbf{x}(t)$:
 The latents evolve in time following a first-order Markov process with additive
 Gaussian noise:
 
-\begin{align}
-    \mathbf{x}(t)=A\mathbf{x}(t-1)+\mathbf{v}(t)\quad\text{with}\ \mathbf{v}(t)\sim\mathcal{N}(0, Q)
-\end{align}
+\begin{align*}
+    \mathbf{x}[n]=A\mathbf{x}[n-1]+\mathbf{v}[n]\quad\text{with}\ \mathbf{v}[n]\sim\mathcal{N}(0, Q)
+\end{align*}
+
+\noindent starting from
+$\mathbf{x}_0\sim\mathcal{N}(\mathbf{x}_0|\mathbf{m}_0,V_0)$.
 
 The latent variables are combined linearly to approximate the firing rate of
-the recorded neurons (bin size 20~ms), $\mathbf{y}(t)$, with a constant offset,
-$\mathbf{a}$, and an additive noise, $\mathbf{w}(t)$.
-
-\begin{align}
-    \mathbf{y}(t)=\mathbf{a}+C\mathbf{x}(t)+\mathbf{w}(t)\quad\text{with}\ \mathbf{w}(t)\sim\mathcal{N}(0, R)
-\end{align}
-
-\begin{comment}
-produced the log pre-intensity,
-$\mathbf{h}^{(r)}(t)=[h_1^{(r)}(t),\ldots,h_N^{(r)}(t)]^\intercal$, where
-$h_n^{(r)}(t)$ is the log
-pre-intensity of neuron $n$ and trial $r$, for a total of $N$ neurons:
-
-\begin{align}
-    \mathbf{h}^{(r)}(t)=C\mathbf{x}^{(r)}(t)+\mathbf{d}
-    \label{eq:logPreIntensity}
-\end{align}
-
-The log pre-intensity of neuron $n$ and trial $r$ is exponentiated to produce the conditional
-intensity function of neuron $n$ and trial $r$:
-
-\begin{align}
-    \lambda_n^{(r)}(t)=\exp(h_n^{(r)}(t))
-    \label{eq:cif}
-\end{align}
-
-\noindent which can be interpreted as the instantaneous firing rate of neuron
-$n$ and trial $r$ at time $t$.
-
-The conditional intensity function of neuron $n$ in trial $r$ is used to calculate the
-probability of spikes $\{t_{i,n}\}_{i=1}^{\Phi(n,r)}$ in a trial $r$ of length $\tau$:
+the recorded neurons (bin size 20~ms), $\mathbf{y}[n]$, with a constant offset,
+$\mathbf{a}$, and an additive noise, $\mathbf{w}[n]$.
 
 \begin{align*}
-    P(\{t_{i,n}\}_{i=1}^{\Phi(n,r)}|\lambda_n^{(r)}(t))=\exp\left(-\int_0^\tau\lambda_n^{(r)}(t)dt\right)\prod_{i=1}^{\Phi(n,r)}\lambda_n^{(r)}(t_{i,n})
+    \mathbf{y}[n]=\mathbf{a}+C\mathbf{x}[n]+\mathbf{w}[n]\quad\text{with}\ \mathbf{w}[n]\sim\mathcal{N}(0, R)
 \end{align*}
+
+We estimated an LDS models with $K=5$ latent variables
+(Eq.~\ref{eq:latentsVector}; the selection of the number of latent variables
+was arbitrary, and we should perform model selection in later iterations).
+
+We estimate  the model parameter $\{\mathbf{m}_0, V_0, \mathbf{u}, A, Q,
+\mathbf{a}, Z, R\}$ using the expectation maximisation algorithm
+(\href{https://github.com/joacorapela/lds_neuralLatents_striatum/blob/master/code/scripts/doEstimateEM.py}{doEstimateEM.py}).
+%
+We then used the Kalman Filter algorithm, with these parameters, to infer the
+latents variables, $\mathbf{x}[n]$ in Equation~\ref{eq:latentsVector}
+(\href{https://github.com/joacorapela/lds_neuralLatents_striatum/blob/master/code/scripts/doKalmanFilteringWithEstimatedParams.py}{doKalmanFilteringWithEstimatedParams.py}).
+%
+We also forecasted firing rates of individual neurons
+(\href{https://github.com/joacorapela/lds_neuralLatents_striatum/blob/master/code/scripts/doPlotObservationsForecasts.py}{doPlotObservationsForecasts.py}).
 
 \section{Results}
 
-I estimated svGPFA models with $K=1,\ldots,15$ latent variables
-(Eq.~\ref{eq:latentsVector}) and squared
-exponential kernels. I selected the
-model with 10 latents variables as the optimal one, since for this number of
-latent variables the achieved lower bound by the models stop increasing
-substantially (Figure~\ref{fig:modelSelection}).
+\subsection{Simultaneous spikes across the striatum}
 
-I arbitrarily set to 10 the number of latent variables \citep[$K$ in Eq.~1
-of][]{dunckerAndSahani18}) of the svGPFA model.
-% Figure~\ref{fig:estimation-lowerBoundVsIterNo}
-% and~\ref{fig:estimation-lowerBoundVsElapsedTime} plot to lower bound as a
-% function of the iteration number and elapsed time, respectively.
+The inferred latent variables are shown in Figure~\ref{fig:inferredLatents}.
 %
-Figures~\ref{fig:orthonornmalized-latent0}-\ref{fig:orthonornmalized-latent9}
-plot the orthonormalized latents for all trials.
+Latent~0, that captures most of variance in the spike rates, shows large
+negative deflections every 1 to 3~seconds.
+Figures~\ref{fig:inferredLatentsZoom1} and~\ref{fig:inferredLatentsZoom2} show
+zoomed-in views of the latents, and Figures~\ref{fig:spikeTimesZoom1}
+and~\ref{fig:spikeTimesZoom2} show corresponding zoomed-in views of the spikes
+times. We note that \textbf{at times of large negative deflections of latent~0
+there is a large number of simultaneous spikes across many neurons in the
+striatum}.
+
+\begin{figure}
+    \centering
+    \href{http://www.gatsby.ucl.ac.uk/~rapela/emmett/reports/firstLDSreport/figures/91973683_state_filtered_from5512.00_to5632.00.html}{\includegraphics[width=6in]{../../../figures/91973683_state_filtered_from5512.00_to5632.00.png}}
+    \caption{Orthonormalised latent variables ($\mathbf{x}(t)$ in
+    Eq.~\ref{eq:latentsVector}) inferred by the Kalman filter algorithm.
+    %
+    The colored vertical lines indicate `poke\_in` times, with
+    blue, red, cyan, yellow, purple, green and magenta corresponding to ports
+    1 to 7, respectively.
+    %
+    The correct sequence is $2\rightarrow 1\rightarrow 6\rightarrow 3\rightarrow 7$
+    corresponding to
+    $\text{red}\rightarrow\text{blue}\rightarrow\text{green}\rightarrow\text{cyan}\rightarrow\text{magenta}$.
+    %
+    Note the sharp downward peaks of latent 0 (the latent variable capturing
+    most of the variance in the response). Zoomed versions of this image appear
+    in Figures~\ref{fig:inferredLatentsZoom1}
+    and~\ref{fig:inferredLatentsZoom2}.
+    %
+    Click on the image to get its interactive version.
+    %
+    }
+    \label{fig:inferredLatents}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=6in]{../../../figures/91973683_state_filtered_from5512.00_to5632.00_zoomed1.png}
+
+    \caption{Zoomed-in view one of the latents in Figure~\ref{fig:inferredLatents}}.
+
+    \label{fig:inferredLatentsZoom1}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=6in]{../../../figures/91973683_state_filtered_from5512.00_to5632.00_zoomed2.png}
+
+    \caption{Zoomed-in view two of the latents in Figure~\ref{fig:inferredLatents}}.
+
+    \label{fig:inferredLatentsZoom2}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=6in]{../../../figures/spike_times_start5512.00_end5632.00_zoomed1_marked.png}
+
+    \caption{Zoomed-in view of the spikes-times in Figure~\ref{fig:spikeTimes}
+    with bounding boxes around the times of large negative deflections of
+    latent~0 in Figure~\ref{fig:inferredLatentsZoom1}.}
+
+    \label{fig:spikeTimesZoom1}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=6in]{../../../figures/spike_times_start5512.00_end5632.00_zoomed2_marked.png}
+
+    \caption{Zoomed-in view of the spikes-times in Figure~\ref{fig:spikeTimes}
+    with bounding boxes around the times of large negative deflections of
+    latent~0 in Figure~\ref{fig:inferredLatentsZoom2}.}
+
+    \label{fig:spikeTimesZoom2}
+\end{figure}
+
+\subsection{Forecasting spikes rates}
+
+Figures~\ref{fig:forecastingH0.02}-\ref{fig:forecastingH1.00} show model
+forecastings of spike rates, from a sample cluster, with horizon ranging from
+20~ms to 1.0~secs into the future. In these figures the forecasted time series
+is plotted at forecasting times. This means that if the forecasting horizon was
+$h$~seconds, the forecasted trace at time $t$ represents the forecasted spike
+rate at time $t$, that was generated using data up to time $t-h$.
+
+\begin{figure}
+    \centering
+    \href{http://www.gatsby.ucl.ac.uk/~rapela/emmett/reports/firstLDSreport/figures/91973683_obs_forecasts_horizon0.020_cluster179_from5512.00_to5632.00.html}{\includegraphics[width=6in]{../../../figures/91973683_obs_forecasts_horizon0.020_cluster179_from5512.00_to5632.00.png}}
+
+    \caption{Forecasted spikes rates of example cluster 179 with an horizon
+    $h=0.02$~seconds.
+    %
+    The forecasted time series is plotted at forecasting times. This means that
+    if the forecasting horizon was $h$~seconds, the forecasted trace at time
+    $t$ represents the forecasted spike rate at time $t$, that was generated
+    using past data up to time $t-h$.
+    %
+    Click on the image to get its interactive version.
+    %
+    }
+    \label{fig:forecastingH0.02}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \href{http://www.gatsby.ucl.ac.uk/~rapela/emmett/reports/firstLDSreport/figures/91973683_obs_forecasts_horizon0.100_cluster179_from5512.00_to5632.00.html}{\includegraphics[width=6in]{../../../figures/91973683_obs_forecasts_horizon0.100_cluster179_from5512.00_to5632.00.png}}
+
+    \caption{Forecasted spikes rates of example cluster 179 with an horizon
+    $h=0.10$~seconds.
+    %
+    Same format as in Figure~\ref{fig:forecastingH0.02}.
+    %
+    Click on the image to get its interactive version.
+    %
+    }
+    \label{fig:forecastingH0.10}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \href{http://www.gatsby.ucl.ac.uk/~rapela/emmett/reports/firstLDSreport/figures/91973683_obs_forecasts_horizon0.500_cluster179_from5512.00_to5632.00.html}{\includegraphics[width=6in]{../../../figures/91973683_obs_forecasts_horizon0.500_cluster179_from5512.00_to5632.00.png}}
+
+    \caption{Forecasted spikes rates of example cluster 179 with an horizon
+    $h=0.50$~seconds.
+    %
+    Same format as in Figure~\ref{fig:forecastingH0.02}.
+    %
+    Click on the image to get its interactive version.
+    %
+    }
+    \label{fig:forecastingH0.50}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \href{http://www.gatsby.ucl.ac.uk/~rapela/emmett/reports/firstLDSreport/figures/91973683_obs_forecasts_horizon1.000_cluster179_from5512.00_to5632.00.html}{\includegraphics[width=6in]{../../../figures/91973683_obs_forecasts_horizon1.000_cluster179_from5512.00_to5632.00.png}}
+
+    \caption{Forecasted spikes rates of example cluster 179 with an horizon
+    $h=1.00$~seconds.
+    %
+    Same format as in Figure~\ref{fig:forecastingH0.02}.
+    %
+    Click on the image to get its interactive version.
+    %
+    }
+    \label{fig:forecastingH1.00}
+\end{figure}
+
+The forecasting model is learning two interesting global trends in the
+recordings.
 %
-Figure~\ref{fig:3DscatterPlotLatents012} shows a scatter plot of
-orthonormalized latents 0, 1 and 2.
+First, when repeated firing is detected, the model learns that the firing rate
+should first increase to a peak value, and then decrease to baseline.
 %
-Figures~\ref{fig:if-neuron0}-\ref{fig:if-neuron16} plot 
-intensity functions (Eq.~\ref{eq:cif}), for all trials, of different neurons.
+Second, the model learns that increases in firing  rate are regular, and
+sometimes forecasts increases in firing rate, even without previous spiking.
 %
-Figure~\ref{fig:orthonormalized_embedding} plot the left singular vectors of
-the matrix $C$ (Eq.~\ref{eq:logPreIntensity}), corresponding to the
-orthonormalized latents, and the offset vector $d$.
+This features are more prominent for horizons $h=0.02, 0.1$~sec. Larger
+horizons of $h=0.5 and 1.0$~sec show delays.
 %
-Figure~\ref{fig:kernels_parameters} displays the estimated lenghtscale
-parameters of the squared exponential kernels of all latents.
+However, we will perform a proper evaluation of forecasting in the near future.
 
-\section{Conclusions}
+\section{Future work}
 
-The intensity functions if Figures~\ref{fig:if-neuron0}-\ref{fig:if-neuron16}
-show diverse tunning of single cells. The majority of them fire more when the
-mouse enters the reward port 7 (e.g., neurons 1~ (Figure~\ref{fig:if-neuron1}),
-2~(Figure~\ref{fig:if-neuron2}), 4~(Figure~\ref{fig:if-neuron4}),
-6~(Figure~\ref{fig:if-neuron6}), 7~(Figure~\ref{fig:if-neuron7}),
-17~(Figure~\ref{fig:if-neuron17})). Other neurons fire more when the mouse
-enters other ports (e.g., neurons 0~(Figure~\ref{fig:if-neuron0}),
-15~(Figure~\ref{fig:if-neuron15}), 16~(Figure~\ref{fig:if-neuron16}) fire more
-around port 1, neuron 3~(Figure~\ref{fig:if-neuron3})
-around por 3, neuron 12~(Figure~\ref{fig:if-neuron12}) around porr 2).
+\begin{enumerate}
 
-Despite this diversity at the single cell level, the first three
-orthonormalized latents show a pattern at the population level
-(Figure~\ref{fig:3DscatterPlotLatents012}). For most trials, there appears to
-be an extreme point around the time where the mouse pokes in a port.
+    \item Analyse other time periods from 
+    \texttt{EJT178\_implant1/recording1\_15\-03\-2022}.
 
-In addition, in Fig.~\ref{fig:3DscatterPlotLatents012} trials are sorted
-systematically, possibly indicating some type of learning, or drift in neural
-activity.
+    \item Analyze other animals.
 
-\end{comment}
+    \item Improve the evaluation of forecasters.
+
+    \item Perform real-time latent visualisation with unsorted spikes.
+
+\end{enumerate}
 
 \bibliographystyle{apalike}
-\bibliography{replay}
-
-\begin{comment}
-\listoffigures
-
-\begin{figure}
-    \begin{center}
-
-        \href{http://www.gatsby.ucl.ac.uk/~rapela/sthita/reports/firstReport/figures/epochedFirst2In_spikes_times_regionsstriatum__neuron07_maxDurationinf.html}{\includegraphics[width=3in]{../../figures/epochedFirst2In_spikes_times_regionsstriatum__neuron07_maxDurationinf.png}}
-        \href{http://www.gatsby.ucl.ac.uk/~rapela/sthita/reports/firstReport/figures/epochedFirst2In_spikes_times_regionsstriatum__neuron00_maxDurationinf.html}{\includegraphics[width=3in]{../../figures/epochedFirst2In_spikes_times_regionsstriatum__neuron00_maxDurationinf.png}}
-        \href{http://www.gatsby.ucl.ac.uk/~rapela/sthita/reports/firstReport/figures/epochedFirst2In_spikes_times_regionsstriatum__neuron06_maxDurationinf.html}{\includegraphics[width=3in]{../../figures/epochedFirst2In_spikes_times_regionsstriatum__neuron06_maxDurationinf.png}}
-        \linebreak
-
-        \caption{Binned spikes and PSTH (red trace) for neurons 7 (top), 0
-        (middle) and 6 (bottom) tunned to port 7, 1 and 3, respectively. Click
-        on the image to access its interactive version.}
-        \label{fig:binnedSpikesAndPSTHsForNeurons7_0_6}
-
-    \end{center}
-\end{figure}
-
-\begin{figure}
-    \begin{center}
-
-        \href{http://www.gatsby.ucl.ac.uk/~rapela/sthita/reports/firstReport/figures/modelSelectionBlock00.html}{\includegraphics[width=6in]{/nfs/ghome/live/rapela/svGPFA/repos/projects/svGPFA_basal_ganglia/code/slurm/figures/modelSelectionBlock00.png}}
-
-        \caption{Model selection. I selected a model with 10
-        latent variables, since at this number the lower bound stopped
-        increasing substantially. Click on the
-        image to access its interactive version.}
-        \label{fig:modelSelection}
-
-    \end{center}
-\end{figure}
-
-\begin{figure}
-    \begin{center}
-
-        \href{http://www.gatsby.ucl.ac.uk/~rapela/sthita/reports/firstReport/figures/\estNumber_lowerBoundHistVSIterNo.html}{\includegraphics[width=6in]{../../figures/\estNumber_lowerBoundHistVSIterNo.png}}
-
-        \caption{Lower bound vs iteration number. Click on the
-        image to access its interactive version.}
-        \label{fig:estimation-lowerBoundVsIterNo}
-
-    \end{center}
-\end{figure}
-
-
-\begin{figure}
-    \begin{center}
-
-        \href{http://www.gatsby.ucl.ac.uk/~rapela/sthita/reports/firstReport/figures/\estNumber_lowerBoundHistVsElapsedTime.html}{\includegraphics[width=6in]{../..//figures/\estNumber_lowerBoundHistVsElapsedTime.png}}
-
-        \caption{Lower bound vs elapsed time. Click on the
-        image to access its interactive version.}
-        \label{fig:estimation-lowerBoundVsElapsedTime}
-
-    \end{center}
-\end{figure}
-
-\begin{figure}
-    \begin{center}
-
-        \href{http://www.gatsby.ucl.ac.uk/~rapela/sthita/reports/firstReport/figures/\estNumber_orthonormalized_estimatedLatent_latent000.html}{\includegraphics[width=5in]{../../figures/\estNumber_orthonormalized_estimatedLatent_latent000.png}}
-
-        \caption{Orthonormalized latent 0. Orange, red, green, blue and black
-        markers correspond to ports 2, 1, 6, 3 and 7, respectively. Crosses and
-        circles correspond to poke in and out, respectively.}
-
-        \label{fig:orthonornmalized-latent0}
-
-    \end{center}
-\end{figure}
-
-\foreach \i in {1,...,9}{
-    \begin{figure}
-        \begin{center}
-
-            \href{http://www.gatsby.ucl.ac.uk/~rapela/sthita/reports/firstReport/figures/\estNumber_orthonormalized_estimatedLatent_latent00\i.html}{\includegraphics[width=5in]{../..//figures/\estNumber_orthonormalized_estimatedLatent_latent00\i.png}}
-
-            \caption{Orthonormalized latent \i. Same format as in
-            Figure~\ref{fig:orthonornmalized-latent0}. Click on the image to
-            access its interactive version.}
-
-            \label{fig:orthonornmalized-latent\i}
-
-        \end{center}
-    \end{figure}
-}
-
-
-\begin{figure}
-    \begin{center}
-
-        \href{http://www.gatsby.ucl.ac.uk/~rapela/sthita/reports/firstReport/figures/\estNumber_orthonormalized_latents0_1_2_.html}{\includegraphics[width=5in]{../../figures/\estNumber_orthonormalized_latents0_1_2_.png}}
-
-        \caption{Scatter plot of orthonormalized latents 0, 1 and
-        2. Same format as in Figure~\ref{fig:orthonornmalized-latent0}. Click
-        on the image to access its interactive version.}
-
-        \label{fig:3DscatterPlotLatents012}
-
-    \end{center}
-\end{figure}
-
-
-\foreach \i in {0,1,2,3,4,6,7,8,9}{
-    \begin{figure}
-        \begin{center}
-
-            \href{http://www.gatsby.ucl.ac.uk/~rapela/sthita/reports/firstReport/figures/\estNumber_CIFsOneNeuronAllTrials_neuron00\i.html}{\includegraphics[width=5in]{../../figures/\estNumber_CIFsOneNeuronAllTrials_neuron00\i.png}}
-
-            \caption{Intensity function for neuron $n=\i$
-            ($\lambda_n(t)$, Eq.~\ref{eq:cif}). Same format as in
-            Figure~\ref{fig:orthonornmalized-latent0}. Click on the image to
-            access its interactive version.}
-
-            \label{fig:if-neuron\i}
-
-        \end{center}
-    \end{figure}
-}
-
-\foreach \i in {10,11,12,13,14,15,16,17}{
-    \begin{figure}
-        \begin{center}
-
-            \href{http://www.gatsby.ucl.ac.uk/~rapela/sthita/reports/firstReport/figures/\estNumber_CIFsOneNeuronAllTrials_neuron0\i.html}{\includegraphics[width=5in]{../..//figures/\estNumber_CIFsOneNeuronAllTrials_neuron0\i.png}}
-
-            \caption{Intensity function for neuron \i. Same format as in
-            Figure~\ref{fig:orthonornmalized-latent0}. Click on the image to
-            access its interactive version.}
-
-            \label{fig:if-neuron\i}
-
-        \end{center}
-    \end{figure}
-}
-
-\begin{figure}
-    \begin{center}
-
-        \href{http://www.gatsby.ucl.ac.uk/~rapela/sthita/reports/firstReport/figures/\estNumber_orthonormalized_embedding_params.html}{\includegraphics[width=5in]{../../figures/\estNumber_orthonormalized_embedding_params.png}}
-
-        \caption{Left singular vectors of the matrix $C$ corresponding to the
-        orthonormalized latents, and offset vector $\mathbf{d}$,
-        (Eq.~\ref{eq:logPreIntensity}). Click on the image to access its
-        interactive version.}
-
-        \label{fig:orthonormalized_embedding}
-
-    \end{center}
-\end{figure}
-
-\begin{figure}
-    \begin{center}
-
-        \href{http://www.gatsby.ucl.ac.uk/~rapela/sthita/reports/firstReport/figures/\estNumber_kernels_params.html}{\includegraphics[width=6in]{../..//figures/\estNumber_kernels_params.png}}
-
-        \caption{Estimated lenghtscale parameters of the squared
-        exponential kernels of all latents. Click on the image to access its
-        interactive version.}
-
-        \label{fig:kernels_parameters}
-
-    \end{center}
-\end{figure}
-
-\end{comment}
+\bibliography{replay.bib}
 
 \end{document}
