@@ -168,6 +168,8 @@ def main(argv):
     fig.write_image(fig_filename_pattern.format("png"))
     fig.write_html(fig_filename_pattern.format("html"))
 
+    fig.show()
+
     breakpoint()
 
 
