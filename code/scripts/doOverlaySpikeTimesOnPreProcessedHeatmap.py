@@ -1,10 +1,11 @@
+import pickle
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 from pathlib import Path
 
-def plot_spikes_on_heatmap(data_path, sample_start=30000, n_samples=2000,
-                           n_channels = 383, bytes_per_val = 2):
+def plot_spikes_on_heatmap(data_path, sample_start, n_samples,
+                           n_channels=383, bytes_per_val=2):
     path = Path(data_path)
 
     # --- 1. Load Pre-processed Data ---
@@ -36,6 +37,15 @@ def plot_spikes_on_heatmap(data_path, sample_start=30000, n_samples=2000,
     # Get the peak channel for the template associated with each spike
     window_spike_chans = template_peak_chans[spike_templates[mask]]
 
+    sample_start = 60000
+    n_samples = 30000
+    results_filename_pattern = "../../results/thrCrossingSpikes_startSample{:d}_endSample{:d}.pickle"
+    results_filename = results_filename_pattern.format(sample_start, sample_start+n_samples-1)
+
+    with open(results_filename, "rb") as f:
+        load_res = pickle.load(f)
+    thr_crossing_spikes_times = load_res["spikes_times"]
+
     # --- 5. Plotting ---
     x_axis_values = np.arange(sample_start, sample_start+n_samples) 
     y_axis_values = np.arange(n_channels) 
@@ -63,6 +73,26 @@ def plot_spikes_on_heatmap(data_path, sample_start=30000, n_samples=2000,
         name='Detected Spikes',
         showlegend=True,
     ))
+
+    fig.add_trace(go.Scatter(
+        x=thr_crossing_spikes_times[0],
+        y=0*np.ones(len(thr_crossing_spikes_times[0])),
+        mode='markers',
+        marker=dict(color='magenta', size=7, symbol='circle', line=dict(width=1, color='black')),
+        name='Thr Spikes',
+        legendgroup="Thr_Spike",
+        showlegend=True,
+    ))
+    for i in range(1, n_channels):
+        fig.add_trace(go.Scatter(
+            x=thr_crossing_spikes_times[i],
+            y=i*np.ones(len(thr_crossing_spikes_times[i])),
+            mode='markers',
+            marker=dict(color='magenta', size=7, symbol='circle', line=dict(width=1, color='black')),
+            name='Thr Spikes',
+            legendgroup="Thr_Spike",
+            showlegend=False,
+        ))
 
     fig.update_layout(
         title="Spikes Overlaid on Pre-processed Data (Calculated via Templates)",
