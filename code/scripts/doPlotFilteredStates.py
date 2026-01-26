@@ -33,7 +33,8 @@ def main(argv):
                         default="/nfs/gatsbystor/rapela/work/ucl/gatsby-swc/gatsby/svGPFA/repos/projects/svGPFA_striatum/data/Transition_data_sync.csv")
     parser.add_argument("--filtering_res_number", type=int,
                         help="number corresponding to filtered results filename",
-                        default=76873351)
+                        default=59077818)
+                        # default=76873351)
                         # default=86836781)
                         # default=37634274)
                         # default=58340273)
