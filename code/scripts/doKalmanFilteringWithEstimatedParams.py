@@ -19,11 +19,13 @@ def main(argv):
                         type=float, default=120.0)
     parser.add_argument("--est_res_num", type=int,
                         help="estimation result number",
-                        default=82227365)
+                        default=20554007)
+                        # default=82227365)
                         # default=56088465)
     parser.add_argument("--clustersIndices_filename",
                         help="filename with clusterIndices used for estimation", type=str,
-                        default="../../metadata/clustersIndices_124_223.ini")
+                        default="../../metadata/electrodesIndices_81_135.ini")
+                        # default="../../metadata/clustersIndices_124_223.ini")
     parser.add_argument("--est_filename_pattern", type=str,
                         default="../../results/{:08d}_estimation.{:s}")
     parser.add_argument("--results_filename_pattern", type=str,
