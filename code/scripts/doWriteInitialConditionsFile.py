@@ -14,9 +14,9 @@ def main(argv):
     parser.add_argument("--n_latents", type=int, help="number of latents",
                         default=5)
     parser.add_argument("--n_clusters", type=int, help="number of clusters",
-                        default=100)
+                        default=55)
     parser.add_argument("--initial_conditions_params_file_num", type=int,
-                        help="initial conditions file number", default=12)
+                        help="initial conditions file number", default=14)
     parser.add_argument("--initialConditions_params_filename_pattern", type=str,
                         default="../../metadata/{:08d}_initialConditions.ini",
                         help="initial conditions filename pattern")
