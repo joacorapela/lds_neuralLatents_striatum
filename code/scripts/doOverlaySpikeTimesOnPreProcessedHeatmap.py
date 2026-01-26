@@ -130,7 +130,7 @@ def main(argv):
     parser.add_argument("--plot_start_time_sec", help="plot start time (sec)",
                         type=float, default=5512.0)
     parser.add_argument("--plot_duration_sec", help="plot duration (sec)",
-                        type=float, default=5.0)
+                        type=float, default=1.0)
     parser.add_argument("--thr_filename_pattern",
                         help="threshold spikes filename", type=str,
                         default="../../results/EJT178_implant1/recording1_15-03-2022/thrCrossingSpikes_startTime{:.02f}_duration{:.02f}.pickle")
