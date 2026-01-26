@@ -14,9 +14,9 @@ import ssm.utils
 
 def main(argv):
     parser = argparse.ArgumentParser()
-    parser.add_argument("--start_time_sec", help="start time to plot (sec)",
+    parser.add_argument("--start_time_sec", help="start time to analyze (sec)",
                         type=float, default=5512.0)
-    parser.add_argument("--duration_sec", help="duration to plot (sec)",
+    parser.add_argument("--duration_sec", help="duration to analyze (sec)",
                         type=float, default=120.0)
     parser.add_argument("--bin_size", help="bin size (secs)", type=float,
                         default=0.02)
@@ -97,7 +97,6 @@ def main(argv):
 
     valid_bins_mask = np.logical_and(start_time_sec<=bins_centers,
                                      bins_centers<end_time_sec)
-    bins_centers = bins_centers[valid_bins_mask]
     data = data[valid_bins_mask, :]
 
     # make sure that the first data point is not NaN
@@ -108,7 +107,7 @@ def main(argv):
     initialConditions_params = configparser.ConfigParser()
     initialConditions_params.read(initialConditions_params_filename)
 
-    aux = raw_data = initialConditions_params['params']['u']
+    aux = initialConditions_params['params']['u']
     u0 = ssm.utils.string_to_array1d(aux).squeeze()
 
     aux = initialConditions_params['params']['B']
