@@ -5,6 +5,7 @@ results/*
 figures/*
 metadata/*
 notes/*
+old
 *__pycache__*
 docs/reports/20251211/*
 !docs/reports/20251211/Makefile
