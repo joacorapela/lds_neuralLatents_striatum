@@ -14,16 +14,19 @@ def main(argv):
     parser.add_argument("--skip_log_transform",
                         help="log transform spike counts", action="store_true")
     parser.add_argument("--start_time_sec", help="start time to plot (sec)",
-                        type=float, default=5512.0)
+                        type=float, default=270.0)
+                        # type=float, default=5512.0)
     parser.add_argument("--duration_sec", help="duration to plot (sec)",
-                        type=float, default=120.0)
+                        type=float, default=300.0)
+                        # type=float, default=120.0)
     parser.add_argument("--clustersIndices_filename",
                         help="filename with clusterIndices used for estimation", type=str,
-                        default="../../metadata/clustersIndices_124_223.ini")
+                        default="../../metadata/clustersIndices_0_207.ini")
+                        # default="../../metadata/clustersIndices_124_223.ini")
     parser.add_argument("--save_filename_pattern", help="save filename pattern", type=str,
-                        default="../../results/binned_spikes_binSize{:.2f}_skipSqrtTrans{:d}.npz")
+                        default="../../results/EJT178_implant1/recording6_29-03-2022/binned_spikes_binSize{:.2f}_skipSqrtTrans{:d}.npz")
     parser.add_argument("--fig_filename_pattern", help="figure filename pattern", type=str,
-                        default="../../figures/binned_spikes__binSize{:.2f}_skipLogTrans{:d}.{{:s}}")
+                        default="../../figures/EJT178_implant1/recording6_29-03-2022/binned_spikes_heatmap_binSize{:.2f}_skipLogTrans{:d}.{{:s}}")
     args = parser.parse_args()
 
     bin_size = args.bin_size
@@ -48,8 +51,6 @@ def main(argv):
                                      bins_centers<end_time_sec)
     bins_centers = bins_centers[valid_bins_mask]
     spike_counts = spike_counts[:, valid_bins_mask]
-
-    breakpoint()
 
     fig = go.Figure()
     trace = go.Heatmap(x=bins_centers, y=clustersIndices, z=spike_counts)
