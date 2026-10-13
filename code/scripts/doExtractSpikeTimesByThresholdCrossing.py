@@ -87,15 +87,16 @@ def extractSpikeTimesByThrCrossing(open_ephys_dir, start_time_sec,
         print(f"Progress: {progress:.1f}% | Processed up to {(end-sample_start)/fs:.1f}s")
 
     print("Spike detection complete.")
-    return spikes_times
+    return spikes_times, fs
 
 
 def main(argv):
     parser = argparse.ArgumentParser()
     parser.add_argument("--start_time_sec", help="start time to analyze (sec)",
-                        type=float, default=5512.0)
+                        type=float, default=7474.0)
+                        # type=float, default=4045.0)
     parser.add_argument("--duration_sec", help="duration to analyze (sec)",
-                        type=float, default=120.0)
+                        type=float, default=300.0)
     parser.add_argument("--chunck_duration_sec", help="chunck duration (sec)",
                         type=float, default=1.0)
     parser.add_argument("--median_ch_spacing",
@@ -118,11 +119,12 @@ def main(argv):
     parser.add_argument("--open_ephys_dir",
                         help="open ephy outputs directory name",
                         type=str,
-                        default="/ceph/sjones/projects/sequence_squad/data/raw_neuropixel/OE_DATA/EJT178/150322/2022-03-15_13-55-36")
+                        default="/ceph/sjones/projects/sequence_squad/data/raw_neuropixel/OE_DATA/EJT178/290322/2022-03-29_13-55-06")
+                        # default="/ceph/sjones/projects/sequence_squad/data/raw_neuropixel/OE_DATA/EJT178/150322/2022-03-15_13-55-36")
     parser.add_argument("--results_filename_pattern",
                         help="results filename pattern",
                         type=str,
-                        default="../../results/EJT178_implant1/recording1_15-03-2022/thrCrossingSpikes_startTime{:.02f}_duration{:.02f}.{:s}")
+                        default="../../results/EJT178_implant1/recording6_29-03-2022/thrCrossingSpikes_startTime{:.02f}_duration{:.02f}.{:s}")
     args = parser.parse_args()
 
     start_time_sec = args.start_time_sec
@@ -140,7 +142,7 @@ def main(argv):
                                                        duration_sec, "pickle")
     metadata_filename = results_filename_pattern.format(start_time_sec,
                                                         duration_sec, "ini")
-    spikes_times = extractSpikeTimesByThrCrossing(
+    spikes_times, fs = extractSpikeTimesByThrCrossing(
         open_ephys_dir=open_ephys_dir,
         start_time_sec=start_time_sec,
         duration_sec=duration_sec,

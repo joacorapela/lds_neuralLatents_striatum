@@ -14,20 +14,20 @@ import ssm.utils
 
 def main(argv):
     parser = argparse.ArgumentParser()
-    parser.add_argument("--start_time_sec", help="start time to plot (sec)",
-                        type=float, default=5512.0)
-    parser.add_argument("--duration_sec", help="duration to plot (sec)",
-                        type=float, default=120.0)
+    parser.add_argument("--start_time_sec", help="start time (sec)",
+                        type=float, default=7474.0)
+                        # type=float, default=4045.0)
+    parser.add_argument("--duration_sec", help="duration (sec)",
+                        type=float, default=300.0)
     parser.add_argument("--bin_size", help="bin size (secs)", type=float,
-                        default=0.02)
+                        default=0.2)
     parser.add_argument("--max_iter", help="maximum number of iterations", type=int,
                         default=5000)
     parser.add_argument("--tol", help="estimation convergence tolerance", type=float,
                         default=1e-1)
     parser.add_argument("--skip_sqrt_transform",
                         help="sqrt transform spike counts", action="store_true")
-    parser.add_argument("--skip_estimation_u",
-                        help="use this option to skip the estimation of u",
+    parser.add_argument("--estimate_u", help="use this option to estimate u",
                         action="store_true")
     parser.add_argument("--skip_estimation_B",
                         help="use this option to skip the estimation of B",
@@ -55,24 +55,24 @@ def main(argv):
                         action="store_true")
     parser.add_argument("--electrodes_indices_filename",
                         help="filename with electrodes indices used for estimation", type=str,
-                        default="../../metadata/electrodesIndices_81_135.ini")
+                        default="../../metadata/electrodesIndices_00_207.ini")
     parser.add_argument("--binned_spikes_filename_pattern",
                         help="binned spikes filename pattern", type=str,
-                        default="../../results/binned_thrCrossingSpikes_startTime{:.02f}_endTime{:.02f}_binSize{:.2f}_skipSqrtTrans{:d}.npz")
+                        default="../../results/EJT178_implant1/recording6_29-03-2022/binned_thrCrossingSpikes_startTime{:.02f}_duration{:.02f}_binSize{:.2f}_skipSqrtTrans{:d}.npz")
     parser.add_argument("--initialConditions_params_filename", type=str,
                         help="initial conditions filename",
-                        default="../../metadata/00000014_initialConditions.ini")
+                        default="../../metadata/00000017_initialConditions.ini")
     parser.add_argument("--results_filename_pattern", type=str,
-                        default="../../results/{:08d}_estimation.{:s}")
+                        default="../../results/EJT178_implant1/recording6_29-03-2022/{:08d}_estimation.{:s}")
     args = parser.parse_args()
 
     start_time_sec = args.start_time_sec
-    end_time_sec = args.start_time_sec + args.duration_sec
+    duration_sec = args.duration_sec
     bin_size = args.bin_size
     max_iter = args.max_iter
     tol = args.tol
     skip_sqrt_transform = args.skip_sqrt_transform
-    skip_estimation_u = args.skip_estimation_u
+    estimate_u = args.estimate_u
     skip_estimation_B = args.skip_estimation_B
     skip_estimation_Q = args.skip_estimation_Q
     skip_estimation_a = args.skip_estimation_a
@@ -86,10 +86,11 @@ def main(argv):
     initialConditions_params_filename = args.initialConditions_params_filename
     results_filename_pattern = args.results_filename_pattern
 
+    end_time_sec = start_time_sec + args.duration_sec
     electrodes_indices = pd.read_csv(electrodes_indices_filename, header=None, index_col=False).squeeze()
 
     binned_spikes_filename = binned_spikes_filename_pattern.format(
-        start_time_sec, end_time_sec, bin_size, skip_sqrt_transform)
+        start_time_sec, duration_sec, bin_size, skip_sqrt_transform)
     load_res = np.load(binned_spikes_filename)
 
     data = load_res["binned_spikes"].T
@@ -108,7 +109,7 @@ def main(argv):
     initialConditions_params = configparser.ConfigParser()
     initialConditions_params.read(initialConditions_params_filename)
 
-    aux = raw_data = initialConditions_params['params']['u']
+    aux = initialConditions_params['params']['u']
     u0 = ssm.utils.string_to_array1d(aux).squeeze()
 
     aux = initialConditions_params['params']['B']
@@ -138,10 +139,10 @@ def main(argv):
 
     vars_to_estimate = {}
 
-    if skip_estimation_u:
-        vars_to_estimate["u"] = False
-    else:
+    if estimate_u:
         vars_to_estimate["u"] = True
+    else:
+        vars_to_estimate["u"] = False
 
     if skip_estimation_B:
         vars_to_estimate["B"] = False
@@ -209,8 +210,10 @@ def main(argv):
         "max_iter": max_iter,
         "tol": tol,
         "skip_sqrt_transform": skip_sqrt_transform,
+        "estimate_u": estimate_u,
         "skip_estimation_B": skip_estimation_B,
         "skip_estimation_Q": skip_estimation_Q,
+        "skip_estimation_a": skip_estimation_a,
         "skip_estimation_Z": skip_estimation_Z,
         "skip_constraint_diag_R": skip_constraint_diag_R,
         "skip_estimation_R": skip_estimation_R,
