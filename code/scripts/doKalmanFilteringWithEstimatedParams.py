@@ -14,34 +14,40 @@ import ssm.inference
 def main(argv):
     parser = argparse.ArgumentParser()
     parser.add_argument("--start_time_sec", help="start time to plot (sec)",
-                        type=float, default=5512.0)
+                        type=float, default=5000.0)
+                        # type=float, default=4345.0)
+                        # type=float, default=4045.0)
     parser.add_argument("--duration_sec", help="duration to plot (sec)",
-                        type=float, default=120.0)
+                        type=float, default=1000.0)
+                        # type=float, default=300.0)
     parser.add_argument("--est_res_num", type=int,
                         help="estimation result number",
-                        default=20554007)
+                        # default=81319532)
+                        # default=22474059)
+                        # default=69324921)
+                        # default=68829249)
+                        default=8762613)
+                        # default=65147452)
+                        # default=89760598)
+                        # default=20554007)
                         # default=82227365)
                         # default=56088465)
-    parser.add_argument("--clustersIndices_filename",
-                        help="filename with clusterIndices used for estimation", type=str,
-                        default="../../metadata/electrodesIndices_81_135.ini")
-                        # default="../../metadata/clustersIndices_124_223.ini")
     parser.add_argument("--est_filename_pattern", type=str,
-                        default="../../results/{:08d}_estimation.{:s}")
+                        default="../../results/EJT178_implant1/recording6_29-03-2022/{:08d}_estimation.{:s}")
     parser.add_argument("--results_filename_pattern", type=str,
-                        default="../../results/{:08d}_filtered.{:s}")
+                        default="../../results/EJT178_implant1/recording6_29-03-2022/{:08d}_filtered.{:s}")
     args = parser.parse_args()
 
     start_time_sec = args.start_time_sec
     end_time_sec = args.start_time_sec + args.duration_sec
     est_res_num = args.est_res_num
-    clustersIndices_filename = args.clustersIndices_filename
     est_filename_pattern = args.est_filename_pattern
     results_filename_pattern = args.results_filename_pattern
 
     est_metadata_filename = est_filename_pattern.format(est_res_num, "ini")
     est_metadata = configparser.ConfigParser()
     est_metadata.read(est_metadata_filename)
+    clustersIndices_filename = est_metadata["params"]["clustersindices_filename"]
     binned_spikes_filename = est_metadata["params"]["binned_spikes_filename"]
 
     clustersIndices = pd.read_csv(clustersIndices_filename, header=None, index_col=False).squeeze()
@@ -104,7 +110,7 @@ def main(argv):
 
     results = dict(xnn1=filter_res["xnn1"], Pnn1=filter_res["Pnn1"],
                    xnn=filter_res["xnn"], Pnn=filter_res["Pnn"],
-                   bins_centers=bins_centers, logLike=filter_res["logLike"])
+                   bins_centers=bins_centers, logLike=filter_res["log_like"])
     with open(results_filename, "wb") as f:
         pickle.dump(results, f)
     print(f"Saved Kalman filter results to {results_filename}")
