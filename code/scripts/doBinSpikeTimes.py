@@ -11,17 +11,19 @@ import gcnu_common.utils.neural_data_analysis
 def main(argv):
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--bin_size", help="bin size", type=float, default=0.02)
+    parser.add_argument("--bin_size", help="bin size", type=float,
+                        default=0.2)
+                        # default=0.02)
     parser.add_argument("--skip_sqrt_transform",
                         help="skip sqrt transform spike counts", action="store_true")
     parser.add_argument("--units_info_filename",
                         help="filename with units information", type=str,
-                        default="/nfs/gatsbystor/rapela/work/ucl/gatsby-swc/gatsby/svGPFA/repos/projects/svGPFA_striatum/data/good_units_df.csv")
+                        default="/ceph/sjones/projects/sequence_squad/organised_data/animals/EJT178_implant1/recording6_29-03-2022/ephys/non_curated_spikes/good_units_df.csv")
     parser.add_argument("--spikes_times_col_name",
                         help="column name for spikes times",
                         type=str, default="Spike_times")
     parser.add_argument("--save_filename_pattern", help="save filename pattern", type=str,
-                        default="../../results/binned_spikes_binSize{:.2f}_skipSqrtTrans{:d}.npz")
+                        default="../../results/EJT178_implant1/recording6_29-03-2022/binned_spikes_binSize{:.2f}_skipSqrtTrans{:d}.npz")
     args = parser.parse_args()
 
     bin_size = args.bin_size
@@ -48,13 +50,15 @@ def main(argv):
     bins_edges = np.arange(t_min, t_max, bin_size)
     bins_centers = (bins_edges[1:] + bins_edges[:-1])/2
 
+    breakpoint()
+
     binned_spikes = np.empty(shape=(n_clusters, len(bins_centers)))
     for n in range(n_clusters):
         binned_spikes[n, :] = gcnu_common.utils.neural_data_analysis.binSpikesTimes(
             spikes_times=continuous_spikes_times[n], bins_edges=bins_edges,
-            time_unit="sec")
+            time_cluster="sec")
     if not skip_sqrt_transform:
-        binned_spikes = np.sqrt(binned_spikes + 0.5)
+        binned_spikes = np.sqrt(binned_spikes)
 
     np.savez(save_filename, bin_size=bin_size,
              slip_sqrt_transform=skip_sqrt_transform,
