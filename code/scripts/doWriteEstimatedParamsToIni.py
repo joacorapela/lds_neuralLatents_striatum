@@ -10,11 +10,13 @@ def main(argv):
     parser = argparse.ArgumentParser()
     parser.add_argument("--est_res_num", type=int,
                         help="estimation result number",
-                        default=80065003)
+                        default=34344938)
+                        # default=68829249)
+                        # default=80065003)
     parser.add_argument("--est_res_filename_pattern", type=str,
-                        default="../../results/{:08d}_estimation.pickle")
+                        default="../../results/EJT178_implant1/recording6_29-03-2022/{:08d}_estimation.pickle")
     parser.add_argument("--est_params_filename_pattern", type=str,
-                        default="../../results/{:08d}_estimated_params.ini")
+                        default="../../results/EJT178_implant1/recording6_29-03-2022/{:08d}_estimated_params.ini")
     args = parser.parse_args()
 
     est_res_num = args.est_res_num
