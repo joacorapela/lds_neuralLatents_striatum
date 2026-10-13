@@ -12,9 +12,12 @@ def main(argv):
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--start_time_sec", help="start time to plot (sec)",
-                        type=float, default=5512.0)
+                        type=float, default=4045.0)
+                        # type=float, default=270.0)
+                        # type=float, default=5512.0)
     parser.add_argument("--duration_sec", help="duration to plot (sec)",
-                        type=float, default=120.0)
+                        type=float, default=300.0)
+                        # type=float, default=120.0)
     parser.add_argument("--ports_to_plot",
                         help="ports to plot", type=str,
                         default="1,2,3,4,5,6,7")
@@ -26,23 +29,26 @@ def main(argv):
                         default="blue,red,cyan,yellow,purple,green,magenta")
     parser.add_argument("--clustersIndices_filename",
                         help="filename with clusterIndices used for estimation", type=str,
-                        default="../../metadata/clustersIndices_124_223.ini")
-    parser.add_argument("--transition_data_filename",
-                        help="transition data filename", type=str,
-                        default="/nfs/gatsbystor/rapela/work/ucl/gatsby-swc/gatsby/svGPFA/repos/projects/svGPFA_striatum/data/Transition_data_sync.csv")
+                        default="../../metadata/clustersIndices_0_207.ini")
+                        # default="../../metadata/clustersIndices_124_223.ini")
+    parser.add_argument("--transitions_data_filename",
+                        help="transitions data filename", type=str,
+                        default="/ceph/sjones/projects/sequence_squad/organised_data/animals/EJT178_implant1/recording6_29-03-2022/behav_sync/2_task/Transition_data_sync.csv")
+                        # default="/nfs/gatsbystor/rapela/work/ucl/gatsby-swc/gatsby/svGPFA/repos/projects/svGPFA_striatum/data/Transition_data_sync.csv")
     parser.add_argument("--units_info_filename",
                         help="filename with units information", type=str,
-                        default="/nfs/gatsbystor/rapela/work/ucl/gatsby-swc/gatsby/svGPFA/repos/projects/svGPFA_striatum/data/good_units_df.csv")
+                        default="/ceph/sjones/projects/sequence_squad/organised_data/animals/EJT178_implant1/recording6_29-03-2022/ephys/non_curated_spikes/good_units_df.csv")
+                        # default="/nfs/gatsbystor/rapela/work/ucl/gatsby-swc/gatsby/svGPFA/repos/projects/svGPFA_striatum/data/good_units_df.csv")
     parser.add_argument("--spikes_times_col_name",
                         help="column name for spikes times",
                         type=str, default="Spike_times")
     parser.add_argument("--fig_filename_pattern", help="figure filename pattern", type=str,
-                        default="../../figures/spike_times_start{:.2f}_end{:.2f}.{:s}")
+                        default="../../figures/EJT178_implant1/recording6_29-03-2022/spike_times_start{:.2f}_end{:.2f}.{:s}")
     args = parser.parse_args()
 
     start_time_sec = args.start_time_sec
     end_time_sec = args.start_time_sec + args.duration_sec
-    transition_data_filename = args.transition_data_filename
+    transitions_data_filename = args.transitions_data_filename
     units_info_filename = args.units_info_filename
     spikes_times_col_name = args.spikes_times_col_name
     ports_to_plot = [int(port_str) for port_str in args.ports_to_plot.split(",")]
@@ -60,7 +66,7 @@ def main(argv):
     clusters_indices = pd.read_csv(clustersIndices_filename, header=None,
                                    index_col=False).to_numpy().squeeze()
     units_info_df = pd.read_csv(units_info_filename)
-    transition_data = pd.read_csv(transition_data_filename)
+    transitions_data = pd.read_csv(transitions_data_filename)
 
     # continuous spikes times
     continuous_spikes_times = [None for n in clusters_indices]
@@ -73,7 +79,7 @@ def main(argv):
     events_df = plotUtils.build_events_df(
         start_time_sec=start_time_sec,
         end_time_sec=end_time_sec,
-        transition_data=transition_data,
+        transitions_data=transitions_data,
         ports_linetypes=ports_linetypes,
         ports_colors=ports_colors)
 
