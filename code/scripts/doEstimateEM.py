@@ -15,19 +15,22 @@ import ssm.utils
 def main(argv):
     parser = argparse.ArgumentParser()
     parser.add_argument("--start_time_sec", help="start time to analyze (sec)",
-                        type=float, default=5512.0)
+                        type=float, default=4045.0)
+                        # type=float, default=7474.0)
+                        # type=float, default=5512.0)
     parser.add_argument("--duration_sec", help="duration to analyze (sec)",
-                        type=float, default=120.0)
+                        type=float, default=300.0)
+                        # type=float, default=120.0)
     parser.add_argument("--bin_size", help="bin size (secs)", type=float,
-                        default=0.02)
+                        default=0.2)
+                        # default=0.02)
     parser.add_argument("--max_iter", help="maximum number of iterations", type=int,
                         default=5000)
     parser.add_argument("--tol", help="estimation convergence tolerance", type=float,
                         default=1e-1)
     parser.add_argument("--skip_sqrt_transform",
                         help="sqrt transform spike counts", action="store_true")
-    parser.add_argument("--skip_estimation_u",
-                        help="use this option to skip the estimation of u",
+    parser.add_argument("--estimate_u", help="use this option to estimate u",
                         action="store_true")
     parser.add_argument("--skip_estimation_B",
                         help="use this option to skip the estimation of B",
@@ -53,17 +56,25 @@ def main(argv):
     parser.add_argument("--skip_estimation_V0",
                         help="use this option to skip the estimation of V0",
                         action="store_true")
-    parser.add_argument("--clustersIndices_filename",
-                        help="filename with clusterIndices used for estimation", type=str,
-                        default="../../metadata/clustersIndices_124_223.ini")
-    parser.add_argument("--binned_spikes_filename_pattern",
-                        help="binned spikes filename pattern", type=str,
-                        default="../../results/binned_spikes_binSize{:.2f}_skipSqrtTrans{:d}.npz")
     parser.add_argument("--initialConditions_params_filename", type=str,
                         help="initial conditions filename",
-                        default="../../metadata/00000009_initialConditions.ini")
+                        default="../../metadata/00000022_initialConditions.ini")
+                        # default="../../metadata/00000021_initialConditions.ini")
+                        # default="../../metadata/00000020_initialConditions.ini")
+                        # default="../../metadata/00000019_initialConditions.ini")
+                        # default="../../metadata/00000018_initialConditions.ini")
+                        # default="../../metadata/00000017_initialConditions.ini")
+                        # default="../../metadata/00000009_initialConditions.ini")
+    parser.add_argument("--clustersIndices_filename",
+                        help="filename with clusterIndices used for estimation", type=str,
+                        default="../../metadata/clustersIndices_0_207.ini")
+                        # default="../../metadata/clustersIndices_124_223.ini")
+    parser.add_argument("--binned_spikes_filename_pattern",
+                        help="binned spikes filename pattern", type=str,
+                        default="../../results/EJT178_implant1/recording6_29-03-2022/binned_spikes_binSize{:.2f}_skipSqrtTrans{:d}.npz")
+                        # default="../../results/binned_spikes_binSize{:.2f}_skipSqrtTrans{:d}.npz")
     parser.add_argument("--results_filename_pattern", type=str,
-                        default="../../results/{:08d}_estimation.{:s}")
+                        default="../../results/EJT178_implant1/recording6_29-03-2022/{:08d}_estimation.{:s}")
     args = parser.parse_args()
 
     start_time_sec = args.start_time_sec
@@ -72,7 +83,7 @@ def main(argv):
     max_iter = args.max_iter
     tol = args.tol
     skip_sqrt_transform = args.skip_sqrt_transform
-    skip_estimation_u = args.skip_estimation_u
+    estimate_u = args.estimate_u
     skip_estimation_B = args.skip_estimation_B
     skip_estimation_Q = args.skip_estimation_Q
     skip_estimation_a = args.skip_estimation_a
@@ -137,10 +148,10 @@ def main(argv):
 
     vars_to_estimate = {}
 
-    if skip_estimation_u:
-        vars_to_estimate["u"] = False
-    else:
+    if estimate_u:
         vars_to_estimate["u"] = True
+    else:
+        vars_to_estimate["u"] = False
 
     if skip_estimation_B:
         vars_to_estimate["B"] = False
@@ -201,27 +212,8 @@ def main(argv):
     print(f"Saved results to {results_filename}")
 
     metadata = configparser.ConfigParser()
-    metadata["params"] = {
-        "start_time_sec": start_time_sec,
-        "duration_sec": args.duration_sec,
-        "bin_size": bin_size,
-        "max_iter": max_iter,
-        "tol": tol,
-        "skip_sqrt_transform": skip_sqrt_transform,
-        "skip_estimation_B": skip_estimation_B,
-        "skip_estimation_Q": skip_estimation_Q,
-        "skip_estimation_Z": skip_estimation_Z,
-        "skip_constraint_diag_R": skip_constraint_diag_R,
-        "skip_estimation_R": skip_estimation_R,
-        "skip_estimation_m0": skip_estimation_m0,
-        "skip_estimation_V0": skip_estimation_V0,
-        "clustersIndices_filename": clustersIndices_filename,
-        "binned_spikes_filename": binned_spikes_filename,
-        "initialConditions_params_filename": initialConditions_params_filename,
-        "results_filename_pattern": results_filename_pattern,
-    }
-    with open(metadata_filename, "w") as f:
-        metadata.write(f)
+    metadata["params"] = { "start_time_sec": start_time_sec, "duration_sec": args.duration_sec, "bin_size": bin_size, "max_iter": max_iter, "tol": tol, "skip_sqrt_transform": skip_sqrt_transform, "estimate_u": estimate_u, "skip_estimation_B": skip_estimation_B, "skip_estimation_Q": skip_estimation_Q, "skip_estimation_a": skip_estimation_a, "skip_estimation_Z": skip_estimation_Z, "skip_constraint_diag_R": skip_constraint_diag_R, "skip_estimation_R": skip_estimation_R, "skip_estimation_m0": skip_estimation_m0, "skip_estimation_V0": skip_estimation_V0, "clustersIndices_filename": clustersIndices_filename, "binned_spikes_filename": binned_spikes_filename, "initialConditions_params_filename": initialConditions_params_filename, "results_filename": results_filename, }
+    with open(metadata_filename, "w") as f: metadata.write(f)
 
     breakpoint()
 
