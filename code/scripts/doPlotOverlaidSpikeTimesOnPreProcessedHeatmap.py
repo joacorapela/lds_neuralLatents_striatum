@@ -139,7 +139,7 @@ def main(argv):
                         default="/ceph/sjones/projects/sequence_squad/data/kilosort_output/EJT178/Recording1/2022-03-15_13-55-36/kilosort3/")
     parser.add_argument("--fig_filename_pattern", type=str,
                         help="figure filename pattern",
-                        default="../../figures/EJT178_implant1/recording1_15-03-2022/ksAndThrSpikesOnHeatmap_startsample{:.02f}_endSample{:.02f}.{{:s}}")
+                        default="../../figures/EJT178_implant1/recording1_15-03-2022/ksAndThrSpikesOnHeatmap_startsample{:.02f}_duration{:.02f}.{{:s}}")
     args = parser.parse_args()
 
     thr_start_time_sec = args.thr_start_time_sec
