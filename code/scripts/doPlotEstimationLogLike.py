@@ -9,11 +9,11 @@ import plotly.graph_objects as go
 def main(argv):
     parser = argparse.ArgumentParser()
     parser.add_argument("--est_res_number", help="model estimation number",
-                        type=int, default=82227365)
+                        type=int, default=8762613)
     parser.add_argument("--estimation_results_filename_pattern", type=str,
-                        default="../../results/{:08d}_estimation.{:s}")
+                        default="../../results/EJT178_implant1/recording6_29-03-2022/{:08d}_estimation.{:s}")
     parser.add_argument("--fig_filename_pattern", type=str,
-                        default="../../figures/{:08d}_estimation_logLike_vs_{:s}.{:s}")
+                        default="../../figures/EJT178_implant1/recording6_29-03-2022/{:08d}_estimation_logLike_vs_{:s}.{:s}")
     args = parser.parse_args()
 
     est_res_number = args.est_res_number
@@ -52,7 +52,7 @@ def main(argv):
     fig.write_html(elapsed_html_fig_filename)
     fig.write_image(elapsed_png_fig_filename)
 
-    fig.show()
+    # fig.show()
 
     breakpoint()
 
