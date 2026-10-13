@@ -12,11 +12,11 @@ import ssm.utils
 def main(argv):
     parser = argparse.ArgumentParser()
     parser.add_argument("--n_latents", type=int, help="number of latents",
-                        default=5)
+                        default=19)
     parser.add_argument("--n_clusters", type=int, help="number of clusters",
-                        default=55)
+                        default=208)
     parser.add_argument("--initial_conditions_params_file_num", type=int,
-                        help="initial conditions file number", default=14)
+                        help="initial conditions file number", default=22)
     parser.add_argument("--initialConditions_params_filename_pattern", type=str,
                         default="../../metadata/{:08d}_initialConditions.ini",
                         help="initial conditions filename pattern")
@@ -26,21 +26,21 @@ def main(argv):
                         help="mean of the normal distribution of the transition matrix B")
     parser.add_argument("--sigma_B", type=float, default=0.3,
                         help="standard deviation of the normal distribution of the transition matrix B")
-    parser.add_argument("--mean_Q", type=float, default=0.3,
+    parser.add_argument("--mean_Q", type=float, default=5.0,
                         help="mean of the normal distribution for the diagonal of the state noise covariance Q")
-    parser.add_argument("--sigma_Q", type=float, default=0.1,
+    parser.add_argument("--sigma_Q", type=float, default=0.5,
                         help="standard deviation of the normal distribution for the diagonal of the state noise covariance Q")
     parser.add_argument("--mean_a", type=float, default=1.0,
                         help="mean of the observations offset")
     parser.add_argument("--sigma_a", type=float, default=0.1,
                         help="standard deviation of the observations offset")
-    parser.add_argument("--mean_Z", type=float, default=0.05,
+    parser.add_argument("--mean_Z", type=float, default=0.01,
                         help="mean of the normal distribution for the elements of the latents to observation transformation matrix Z")
-    parser.add_argument("--sigma_Z", type=float, default=0.01,
+    parser.add_argument("--sigma_Z", type=float, default=0.005,
                         help="standard deviation of the normal distribution for the elements of the latents to observation transformation matrix Z")
-    parser.add_argument("--mean_R", type=float, default=0.5,
+    parser.add_argument("--mean_R", type=float, default=1.0,
                         help="mean of the normal distribution for the diagonal of the state noise covariance R")
-    parser.add_argument("--sigma_R", type=float, default=0.1,
+    parser.add_argument("--sigma_R", type=float, default=0.2,
                         help="standard deviation of the normal distribution for the diagonal of the measurement noise covariance R")
     parser.add_argument("--constant_m0", type=float, default=0.0,
                         help="constant value for the state initial mean")
