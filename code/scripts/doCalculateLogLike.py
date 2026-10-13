@@ -1,0 +1,105 @@
+
+import sys
+import pickle
+import argparse
+import configparser
+import numpy as np
+import pandas as pd
+
+import ssm.inference
+
+
+def main(argv):
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--start_time_sec", help="start time to plot (sec)",
+                        type=float, default=4345.0)
+                        # type=float, default=7474.0)
+    parser.add_argument("--duration_sec", help="duration to plot (sec)",
+                        type=float, default=300.0)
+    parser.add_argument("--est_res_num", type=int,
+                        help="estimation result number",
+                        default=69454945)
+                        # default=54855959)
+                        # default=30948794)
+                        # default=8762613)
+                        # default=81319532)
+                        # default=22474059)
+                        # default=69324921)
+                        # default=68829249)
+                        # default=8762613)
+                        # default=65147452)
+                        # default=89760598)
+                        # default=20554007)
+                        # default=82227365)
+                        # default=56088465)
+    parser.add_argument("--est_filename_pattern", type=str,
+                        default="../../results/EJT178_implant1/recording6_29-03-2022/{:08d}_estimation.{:s}")
+    args = parser.parse_args()
+
+    start_time_sec = args.start_time_sec
+    end_time_sec = args.start_time_sec + args.duration_sec
+    est_res_num = args.est_res_num
+    est_filename_pattern = args.est_filename_pattern
+
+    est_metadata_filename = est_filename_pattern.format(est_res_num, "ini")
+    est_metadata = configparser.ConfigParser()
+    est_metadata.read(est_metadata_filename)
+    clustersIndices_filename = est_metadata["params"]["clustersindices_filename"]
+    binned_spikes_filename = est_metadata["params"]["binned_spikes_filename"]
+
+    clustersIndices = pd.read_csv(clustersIndices_filename, header=None, index_col=False).squeeze()
+
+    est_res_filename = est_filename_pattern.format(est_res_num, "pickle")
+    with open(est_res_filename, "rb") as f:
+        optim_res = pickle.load(f)
+
+    if "u" in optim_res.keys(): # EM
+        u = optim_res["u"]
+        B = optim_res["B"]
+        Q = optim_res["Q"]
+        a = optim_res["a"]
+        Z = optim_res["Z"]
+        R = optim_res["R"]
+        m0 = optim_res["m0"]
+        V0 = optim_res["V0"]
+    elif "estimates" in optim_res.keys(): # gradient ascent
+        B = optim_res["estimates"]["B"].numpy()
+        M = B.shape[0]
+        if "u" in optim_res["estimates"].keys():
+            u = optim_res["estimates"]["u"].numpy()
+        else:
+            u = np.zeros(shape=M)
+        Q = np.diag(optim_res["estimates"]["sqrt_diag_Q"].numpy()**2)
+        if "m0" in optim_res["estimates"].keys():
+            m0 = optim_res["estimates"]["m0"].numpy()
+        else:
+            m0 = np.zeros(shape=M)
+        V0 = np.diag(optim_res["estimates"]["sqrt_diag_V0"].numpy()**2)
+        Z = optim_res["estimates"]["Z"].numpy()
+        a = optim_res["estimates"]["a"].numpy()
+        R = np.diag(optim_res["estimates"]["sqrt_diag_R"].numpy()**2)
+
+    load_res = np.load(binned_spikes_filename)
+    data = load_res["binned_spikes"]
+    bins_centers = load_res["bins_centers"]
+
+    # make sure that the first data point is not NaN
+    first_not_nan_index = np.where(~np.isnan(data).any(axis=0))[0][0]
+    data = data[clustersIndices, first_not_nan_index:]
+    #
+
+    valid_bins_mask = np.logical_and(start_time_sec<=bins_centers,
+                                     bins_centers<end_time_sec)
+    bins_centers = bins_centers[valid_bins_mask]
+    data = data[:, valid_bins_mask]
+
+    filter_res = ssm.inference.filterLDS_SS_withMissingValues_np(
+        y=data, u=u, B=B, Q=Q, m0=m0, V0=V0, a=a, Z=Z, R=R)
+
+    print(filter_res["log_like"].squeeze())
+
+    breakpoint()
+
+
+if __name__ == "__main__":
+    main(sys.argv)
