@@ -13,13 +13,14 @@ def main(argv):
     parser = argparse.ArgumentParser()
     parser.add_argument("--templates_indices_filename",
                         help="filename with templates indices", type=str,
-                        default="../../metadata/clustersIndices_124_223.ini")
+                        default="../../metadata/clustersIndices_0_207.ini")
+                        # default="../../metadata/clustersIndices_124_223.ini")
     parser.add_argument("--kilosort3_dirname", help="kilosort3 directory name",
                         type=str,
                         default="/ceph/sjones/projects/sequence_squad/data/kilosort_output/EJT178/Recording6/2022-03-29_13-55-06/kilosort3")
     parser.add_argument("--results_filename", type=str,
                         help="results filename",
-                        default="../../results/electrodeWithLargestAmplitudesForClusterIndices_124_233.ini")
+                        default="../../results/EJT178/Recording6/electrodeWithLargestAmplitudesForClusterIndices_124_233.ini")
 
     args = parser.parse_args()
     templates_indices_filename = args.templates_indices_filename
