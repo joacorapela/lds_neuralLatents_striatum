@@ -6,8 +6,14 @@ figures/*
 metadata/*
 notes/*
 old
+*.csh
+*.bash
 *__pycache__*
 docs/reports/20251211/*
 !docs/reports/20251211/Makefile
 !docs/reports/20251211/firstLDSreport_20251211.tex
 !docs/reports/20251211/firstLDSreport_20251211.pdf
+docs/reports/20260307/*
+!docs/reports/20260307/Makefile
+!docs/reports/20260307/lds_report_20260307.tex
+!docs/reports/20260307/lds_report_20260307.pdf
